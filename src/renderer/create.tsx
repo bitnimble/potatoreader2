@@ -14,14 +14,7 @@ export function createApp() {
   const Viewer = createViewer();
 
   return observer(() => {
-    const Body = store.currentPage === 'home' ? Home : Viewer;
-
-    return (
-      <div>
-        <div>Header</div>
-        <button onClick={changePage}>Change page</button>
-        <Body/>
-      </div>
-    );
+    const Content = store.currentPage === 'home' ? Home : Viewer;
+    return <Content/>;
   });
 }

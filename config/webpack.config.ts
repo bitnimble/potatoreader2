@@ -2,6 +2,8 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import postcssUrl from 'postcss-url';
+import autoprefixer from 'autoprefixer';
 
 const config: webpack.Configuration[] = [
   {
@@ -43,6 +45,31 @@ const config: webpack.Configuration[] = [
             transpileOnly: true,
           },
         },
+        {
+          test: /\.css$/,
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                importLoaders: 1,
+                modules: true,
+                localIdentName: '[path][name]__[local]--[hash:base64:5]',
+              },
+            },
+            'resolve-url-loader',
+            {
+              loader: 'postcss-loader',
+              options: {
+                sourceMap: true,
+                plugins: () => [
+                  postcssUrl(),
+                  autoprefixer(),
+                ],
+              },
+            }
+          ],
+        }
       ]
     },
     plugins: [
