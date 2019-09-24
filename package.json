@@ -24,6 +24,7 @@
     "postcss-loader": "^3.0.0",
     "postcss-url": "^8.0.0",
     "resolve-url-loader": "^3.1.0",
+    "style-loader": "^1.0.0",
     "ts-loader": "^6.1.2",
     "ts-node": "^8.4.1",
     "typescript": "^3.6.3",
