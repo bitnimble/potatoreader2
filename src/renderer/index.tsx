@@ -1,3 +1,7 @@
-const el = document.createElement('div');
-el.innerHTML = 'hello world!';
-document.body.appendChild(el);
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import { createApp } from './create';
+
+const App = createApp();
+
+ReactDOM.render(<App/>, document.getElementById('app'));

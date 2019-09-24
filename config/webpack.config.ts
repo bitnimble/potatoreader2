@@ -49,13 +49,11 @@ const config: webpack.Configuration[] = [
       new ForkTsCheckerWebpackPlugin(),
       new HtmlWebpackPlugin({
         title: 'Potato Reader 2',
-        meta: {
-          'viewport': 'width=device-width, initial-scale=1, shrink-to-fit=no',
-        },
+        template: 'config/index.html'
       })
     ],
     resolve: {
-      extensions: ['.tsx', '.ts'],
+      extensions: ['.tsx', '.ts', '.js', '.jsx'],
     },
     output: {
       filename: 'index.js',
