@@ -8,8 +8,6 @@ export function createApp() {
   const store = new AppStore();
   const presenter = new AppPresenter();
 
-  const changePage = () => presenter.changePage(store);
-
   const Home = createHome();
   const Viewer = createViewer();
 
