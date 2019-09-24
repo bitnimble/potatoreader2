@@ -48,7 +48,12 @@ const config: webpack.Configuration[] = [
         {
           test: /\.css$/,
           use: [
-            'style-loader',
+            {
+              loader: 'style-loader',
+              options: {
+                injectType: 'singletonStyleTag',
+              },
+            },
             {
               loader: 'css-loader',
               options: {
