@@ -6,21 +6,22 @@ import styles from './page_list.css';
 import { PlaceholderPage } from './placeholder_page';
 
 type Props = {
+  currentPageIndex: number;
   pages: readonly Page[];
+  onCurrentPageChange(pageIndex: number): void;
   onMount(): void;
 };
 
+@observer
 export class PageList extends React.Component<Props> {
-  private currentPageIndex = 0;
-
   componentDidMount() {
     this.props.onMount();
   }
 
   private onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { currentPageIndex, onCurrentPageChange } = this.props;
     const list = e.target as HTMLDivElement;
     const currentScroll = list.scrollTop;
-    // const totalHeight = list.scrollHeight;
 
     const pageIndex = -1 + [...list.children].findIndex(page => {
       const top = (page as HTMLElement).offsetTop;
@@ -30,9 +31,9 @@ export class PageList extends React.Component<Props> {
       return false;
     });
 
-    if (this.currentPageIndex != pageIndex) {
+    if (currentPageIndex != pageIndex) {
       console.log(`Now on page ${pageIndex}`);
-      this.currentPageIndex = pageIndex;
+      onCurrentPageChange(pageIndex);
     }
   }
 

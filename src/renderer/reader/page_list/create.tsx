@@ -10,8 +10,14 @@ export function createPageList() {
   const presenter = new PageListPresenter(pageProvider);
 
   const onMount = () => presenter.loadPages(store);
+  const onCurrentPageChange = (pageIndex: number) => presenter.onCurrentPageChange(store, pageIndex);
 
   return observer(() => (
-      <PageList pages={store.pages} onMount={onMount} />
+      <PageList
+          currentPageIndex={store.currentPageIndex}
+          pages={store.pages}
+          onCurrentPageChange={onCurrentPageChange}
+          onMount={onMount}
+      />
   ));
 }
