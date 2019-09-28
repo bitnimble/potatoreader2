@@ -1,13 +1,17 @@
-import * as path from 'path';
-import * as webpack from 'webpack';
+import autoprefixer from 'autoprefixer';
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
+import * as path from 'path';
 import postcssUrl from 'postcss-url';
-import autoprefixer from 'autoprefixer';
+import * as webpack from 'webpack';
+
+const devMode = true;
 
 const config: webpack.Configuration[] = [
   {
-    entry: './src/main/main.ts',
+    mode: devMode ? 'development' : 'production',
+    devtool: devMode ? 'cheap-module-eval-source-map' : undefined,
+    entry: path.resolve(__dirname, '../src/main/main.ts'),
     target: 'electron-main',
     module: {
       rules: [
@@ -33,8 +37,14 @@ const config: webpack.Configuration[] = [
     }
   },
   {
-    entry: './src/renderer/index.tsx',
-    target: 'electron-renderer',
+    mode: devMode ? 'development' : 'production',
+    devtool: devMode ? 'cheap-module-eval-source-map' : undefined,
+    devServer: devMode ? {
+      contentBase: path.resolve(__dirname, '../dist'),
+      hot: false,
+    } : undefined,
+    entry: path.resolve(__dirname, '../src/renderer/index.tsx'),
+    target: devMode ? 'web' : 'electron-renderer',
     module: {
       rules: [
         {
@@ -82,8 +92,8 @@ const config: webpack.Configuration[] = [
       new ForkTsCheckerWebpackPlugin(),
       new HtmlWebpackPlugin({
         title: 'Potato Reader 2',
-        template: 'config/index.html'
-      })
+        template: path.resolve(__dirname, './index.html'),
+      }),
     ],
     resolve: {
       extensions: ['.tsx', '.ts', '.js', '.jsx'],

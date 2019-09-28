@@ -6,8 +6,8 @@
   "author": "Sammy Sammon <anonymous-thing@hotmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "webpack --config config/webpack.config.ts",
-    "start": "yarn build && electron dist/electron.js"
+    "start": "webpack-dev-server --config config/webpack.config.ts",
+    "build": "webpack --config config/webpack.config.ts && electron dist/electron.js"
   },
   "devDependencies": {
     "@types/autoprefixer": "^9.6.1",
@@ -16,6 +16,7 @@
     "@types/react": "^16.9.2",
     "@types/react-dom": "^16.9.0",
     "@types/webpack": "^4.39.1",
+    "@types/webpack-dev-server": "^3.1.7",
     "autoprefixer": "^9.6.1",
     "css-loader": "^3.2.0",
     "electron": "^6.0.10",
@@ -29,7 +30,8 @@
     "ts-node": "^8.4.1",
     "typescript": "^3.6.3",
     "webpack": "^4.40.2",
-    "webpack-cli": "^3.3.9"
+    "webpack-cli": "^3.3.9",
+    "webpack-dev-server": "^3.8.1"
   },
   "dependencies": {
     "mobx": "^5.13.0",
