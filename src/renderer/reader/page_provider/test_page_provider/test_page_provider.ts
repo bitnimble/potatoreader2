@@ -2,11 +2,11 @@ import { Page, PageProvider, PageRange } from '../page_provider';
 
 export class TestPageProvider implements PageProvider {
   async getPages(range: PageRange): Promise<readonly Page[]> {
-    return [
-      this.createPage('1'),
-      this.createPage('hello world'),
-      this.createPage('potato reader'),
-    ];
+    const pages = [];
+    for (let i = range[0]; i < range[1]; i++) {
+      pages.push(this.createPage(`Page ${i}`));
+    }
+    return pages;
   }
 
   private createPage(content: string): Page {

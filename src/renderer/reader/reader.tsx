@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react';
 import React from 'react';
+import styles from './reader.css';
 
 type Props = {
   PageList: React.ComponentType;
@@ -9,7 +10,7 @@ type Props = {
 export class Reader extends React.Component<Props> {
   render() {
     return (
-      <div>
+      <div className={styles.reader}>
         <this.props.PageList/>
       </div>
     )

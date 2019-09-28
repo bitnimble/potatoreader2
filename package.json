@@ -6,7 +6,7 @@
   "author": "Sammy Sammon <anonymous-thing@hotmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server --config config/webpack.config.ts",
+    "start": "webpack-dev-server --config config/webpack.config.ts --no-inline",
     "build": "webpack --config config/webpack.config.ts && electron dist/electron.js"
   },
   "devDependencies": {

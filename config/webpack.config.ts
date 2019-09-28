@@ -41,7 +41,6 @@ const config: webpack.Configuration[] = [
     devtool: devMode ? 'cheap-module-eval-source-map' : undefined,
     devServer: devMode ? {
       contentBase: path.resolve(__dirname, '../dist'),
-      hot: false,
     } : undefined,
     entry: path.resolve(__dirname, '../src/renderer/index.tsx'),
     target: devMode ? 'web' : 'electron-renderer',
@@ -103,6 +102,5 @@ const config: webpack.Configuration[] = [
       path: path.resolve(__dirname, '../dist')
     }
   }
-]
-
+];
 export default config;

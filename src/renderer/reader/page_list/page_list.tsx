@@ -11,17 +11,38 @@ type Props = {
 };
 
 export class PageList extends React.Component<Props> {
+  private currentPageIndex = 0;
+
   componentDidMount() {
     this.props.onMount();
+  }
+
+  private onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const list = e.target as HTMLDivElement;
+    const currentScroll = list.scrollTop;
+    // const totalHeight = list.scrollHeight;
+
+    const pageIndex = -1 + [...list.children].findIndex(page => {
+      const top = (page as HTMLElement).offsetTop;
+      if (top > currentScroll) {
+        return true;
+      }
+      return false;
+    });
+
+    if (this.currentPageIndex != pageIndex) {
+      console.log(`Now on page ${pageIndex}`);
+      this.currentPageIndex = pageIndex;
+    }
   }
 
   render() {
     const { pages } = this.props;
 
     return (
-      <div className={styles.pageList}>
+      <div className={styles.pageList} onScroll={this.onScroll}>
         {pages.map((page, i) => (
-          <PageView page={page}/>
+          <PageView key={i} page={page}/>
         ))}
       </div>
     );

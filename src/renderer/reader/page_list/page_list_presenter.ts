@@ -14,7 +14,7 @@ export class PageListPresenter {
   constructor(private readonly pageProvider: PageProvider) { }
 
   async loadPages(store: PageListStore) {
-    const pages = await this.pageProvider.getPages([0, store.bufferDistance]);
+    const pages = await this.pageProvider.getPages([0, 10]);
     runInAction(() => store.pages = pages);
   }
 }
