@@ -3,7 +3,7 @@ import { PageData, PageProvider, PageRange, PageRef } from '../page_provider/pag
 
 const BUFFER_DISTANCE = 2;
 const BUFFER_AMOUNT = 5;
-const MAX_PAGES = 40;
+const MAX_PAGES = 30;
 
 export class PageListStore {
   @observable.ref
@@ -89,7 +89,10 @@ export class PageListPresenter {
       const pageAmount = direction === 'before' ? -1 * BUFFER_AMOUNT : BUFFER_AMOUNT;
       const origin = direction === 'before' ? store.pages[0].pageRef : store.pages[store.pages.length - 1].pageRef;
       const currentRequestKey = this.getCurrentRequestKey(origin, pageAmount);
-      if (!this.currentRequests.has(currentRequestKey)) {
+      if (!this.currentRequests.has(currentRequestKey)
+          // Avoid requesting pages before the first page of the series
+          && !(origin.chapterNumber === 0 && origin.pageNumber === 0 && direction === 'before')
+      ) {
         this.currentRequests.add(currentRequestKey);
         // Fire and forget
         console.log(`Requesting ${pageAmount} from ${PageRef.toShortString(origin)}`);
@@ -121,10 +124,11 @@ export class PageListPresenter {
       this.addToPageKeySet(filteredPages);
 
       if (store.pages.length > MAX_PAGES) {
+        console.log('removing pages');
         // Cull pages from the end if there are too many pages loaded
         const removed = direction === 'before'
             ? store.pages.splice(MAX_PAGES)
-            : store.pages.splice(0, MAX_PAGES - store.pages.length);
+            : store.pages.splice(0, store.pages.length - MAX_PAGES);
         this.removeFromPageKeySet(removed);
       }
 
