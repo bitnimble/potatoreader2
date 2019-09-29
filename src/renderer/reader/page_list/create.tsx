@@ -1,6 +1,5 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import { PageRange } from '../page_provider/page_provider';
 import { TestPageProvider } from '../page_provider/test_page_provider/test_page_provider';
 import { PageList } from './page_list';
 import { PageListPresenter, PageListStore } from './page_list_presenter';
@@ -11,13 +10,12 @@ export function createPageList() {
   const presenter = new PageListPresenter(pageProvider);
 
   const onMount = () => presenter.loadPages(store);
-  const onViewportPageRangeChange = (range: PageRange) => presenter.onViewportPageRangeChange(store, range);
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => presenter.onScroll(store, e);
 
   return observer(() => (
       <PageList
-          viewportPageRange={store.viewportPageRange}
           pages={store.pages}
-          onViewportPageRangeChange={onViewportPageRangeChange}
+          onListScroll={onScroll}
           onMount={onMount}
       />
   ));

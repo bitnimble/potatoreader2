@@ -38,6 +38,10 @@ export namespace PageRef {
     }
     return `${p.chapterNumber}:${p.pageNumber}`;
   }
+
+  export function toPageKey(p: PageRef) {
+    return `${p.seriesId}-${p.chapterNumber}-${p.pageNumber}`;
+  }
 }
 
 // Page ranges are inclusive lower, exclusive upper.
@@ -87,21 +91,8 @@ export abstract class PageProvider {
   // Map from chapter key to ChapterData
   protected chapterCache: Map<string, ChapterData> = new Map();
 
-  abstract getPageRange(range: PageRange): Promise<readonly PageData[]>;
+  abstract getPages(pages: readonly PageRef[]): Promise<readonly PageData[]>;
   abstract getChapter(chapter: ChapterRef): Promise<ChapterData>;
-
-  /**
-   * Increments a PageRef, resolving to the next chapter if there are no more pages in the current
-   * chapter.
-   */
-  private async getNextPageRef(p: PageRef): Promise<PageRef> {
-    // If the pageRef overflows, move to the next chapter
-    const chapter = await this.getChapter(ChapterRef.fromPageRef(p));
-    if (p.pageNumber + 1 >= chapter.pages.length) {
-      return new PageRef(p.seriesId, p.chapterNumber + 1, 0);
-    }
-    return PageRef.addPages(p, 1);
-  }
 
   /**
    * Takes a starting PageRef and a number of additional pages to request, and expands it into a full
@@ -123,7 +114,7 @@ export abstract class PageProvider {
    * Takes a PageRange and expands it into a full array of PageRefs, for each
    * page in the range.
    */
-  protected async expandPageRange(range: PageRange): Promise<PageRef[]> {
+  async expandPageRange(range: PageRange): Promise<PageRef[]> {
     const pages = [];
     const firstPage = range[0] || new PageRef('', 0, 0);
     // Default to 10 pages past the first page if a null ending page was provided
@@ -144,5 +135,23 @@ export abstract class PageProvider {
     }
 
     return pages;
+  }
+
+  async getPageRange(range: PageRange): Promise<readonly PageData[]> {
+    const pages = await this.expandPageRange(range);
+    return this.getPages(pages);
+  }
+
+  /**
+   * Increments a PageRef, resolving to the next chapter if there are no more pages in the current
+   * chapter.
+   */
+  private async getNextPageRef(p: PageRef): Promise<PageRef> {
+    // If the pageRef overflows, move to the next chapter
+    const chapter = await this.getChapter(ChapterRef.fromPageRef(p));
+    if (p.pageNumber + 1 >= chapter.pages.length) {
+      return new PageRef(p.seriesId, p.chapterNumber + 1, 0);
+    }
+    return PageRef.addPages(p, 1);
   }
 }

@@ -1,18 +1,10 @@
-import {
-  ChapterData,
-  ChapterRef,
-  PageData,
-  PageProvider,
-  PageRange,
-  PageRef,
-} from '../page_provider';
+import { ChapterData, ChapterRef, PageData, PageProvider, PageRef } from '../page_provider';
 
 const CHAPTER_PAGE_COUNT = 30;
 
 export class TestPageProvider extends PageProvider {
-  async getPageRange(range: PageRange): Promise<readonly PageData[]> {
-    const pageRefs = await this.expandPageRange(range);
-    return pageRefs.map(pageRef => this.createPage(pageRef));
+  async getPages(pages: readonly PageRef[]): Promise<readonly PageData[]> {
+    return pages.map(pageRef => this.createPage(pageRef));
   }
 
   async getChapter(chapterRef: ChapterRef): Promise<ChapterData> {
