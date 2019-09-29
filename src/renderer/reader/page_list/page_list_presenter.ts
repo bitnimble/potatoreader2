@@ -1,5 +1,6 @@
 import { action, observable, runInAction } from 'mobx';
-import { PageData, PageProvider, PageRange, PageRef } from '../page_provider/page_provider';
+import { PageProvider } from '../page_provider/page_provider';
+import { PageData, PageRange, PageRef } from '../page_types';
 
 const BUFFER_DISTANCE = 2;
 const BUFFER_AMOUNT = 5;

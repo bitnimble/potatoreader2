@@ -1,4 +1,5 @@
-import { ChapterData, ChapterRef, PageData, PageProvider, PageRef } from '../page_provider';
+import { ChapterData, ChapterRef, PageData, PageRef } from 'renderer/reader/page_types';
+import { PageProvider } from '../page_provider';
 
 const CHAPTER_PAGE_COUNT = 30;
 
