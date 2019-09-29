@@ -1,28 +1,32 @@
 import { action, observable, runInAction } from 'mobx';
-import { Page, PageProvider } from '../page_provider/page_provider';
+import { PageData, PageProvider, PageRange, PageRef } from '../page_provider/page_provider';
 
 export class PageListStore {
   @observable.ref
-  currentPageIndex: number = 0;
+  viewportPageRange: PageRange = [null, null];
 
   /** Buffer distance, in pages */
   @observable.ref
   bufferDistance: number = 2;
 
   @observable.shallow
-  pages: readonly Page[] = [];
+  pages: readonly PageData[] = [];
 }
 
 export class PageListPresenter {
   constructor(private readonly pageProvider: PageProvider) { }
 
   async loadPages(store: PageListStore) {
-    const pages = await this.pageProvider.getPages([0, 10]);
+    const pages = await this.pageProvider.getPages([
+      { seriesId: 'test-series', chapterNumber: 0, pageNumber: 0 },
+      { seriesId: 'test-series', chapterNumber: 0, pageNumber: 10 },
+    ]);
     runInAction(() => store.pages = pages);
   }
 
   @action
-  onCurrentPageChange(store: PageListStore, pageIndex: number) {
-    store.currentPageIndex = pageIndex;
+  onViewportPageRangeChange(store: PageListStore, range: PageRange) {
+    store.viewportPageRange = range;
+    console.log(`Now viewing pages ${PageRef.toShortString(range[0])}-${PageRef.toShortString(range[1])}`);
   }
 }

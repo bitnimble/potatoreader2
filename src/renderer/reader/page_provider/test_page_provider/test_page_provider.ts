@@ -1,15 +1,41 @@
-import { Page, PageProvider, PageRange } from '../page_provider';
+import { PageData, PageProvider, PageRange, PageRef } from '../page_provider';
 
 export class TestPageProvider implements PageProvider {
-  async getPages(range: PageRange): Promise<readonly Page[]> {
+  async getPages(range: PageRange): Promise<readonly PageData[]> {
+    const pageRefs = this.expandPageRange(range);
+    return pageRefs.map(pageRef => this.createPage(pageRef));
+  }
+
+  /**
+   * Takes a PageRange and expands it into a full array of PageRefs, for each
+   * page in the range.
+   */
+  private expandPageRange(range: PageRange): PageRef[] {
     const pages = [];
-    for (let i = range[0]; i < range[1]; i++) {
-      pages.push(this.createPage(`Page ${i}`));
+    const firstPage = range[0] || new PageRef('', 0, 0);
+    // Default to 10 pages past the first page if a null ending page was provided
+    const lastPage = range[1] || PageRef.addPages(firstPage, 10);
+
+    let currentPage = firstPage;
+    let pageCount = 0;
+    while (!PageRef.compare(currentPage, lastPage)) {
+      pages.push(currentPage);
+      // Increment page, moving to the next chapter if the pageNumber >= 30
+      currentPage = PageRef.addPages(currentPage, 1);
+      if (currentPage.pageNumber >= 30) {
+        currentPage = new PageRef(currentPage.seriesId, currentPage.chapterNumber + 1, 0);
+      }
+      console.log(`Expanding page ${PageRef.toShortString(currentPage)}`);
+      pageCount++;
+      if (pageCount > 100) {
+        throw new Error('requested too many pages');
+      }
     }
+
     return pages;
   }
 
-  private createPage(content: string): Page {
+  private createPage(pageRef: PageRef): PageData {
     const loadImage = async () => {
       const canvas = document.createElement('canvas');
       canvas.width = 500;
@@ -20,7 +46,7 @@ export class TestPageProvider implements PageProvider {
       }
       ctx.font = '16px serif';
       ctx.fillStyle = 'blue';
-      ctx.fillText(content, 30, 30);
+      ctx.fillText(`Chapter ${pageRef.chapterNumber}, page ${pageRef.pageNumber}`, 30, 30);
 
       const uri = canvas.toDataURL('image/png');
 
@@ -31,6 +57,7 @@ export class TestPageProvider implements PageProvider {
     };
 
     return {
+      pageRef,
       loadImage,
     };
   }
