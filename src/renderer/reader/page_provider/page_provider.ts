@@ -92,7 +92,7 @@ export abstract class PageProvider {
   protected chapterCache: Map<string, ChapterData> = new Map();
 
   abstract getPages(pages: readonly PageRef[]): Promise<readonly PageData[]>;
-  abstract getChapter(chapter: ChapterRef): Promise<ChapterData>;
+  abstract getChapter(chapter: ChapterRef): Promise<ChapterData | null>;
 
   /**
    * Takes a starting PageRef and a number of additional pages to request, and expands it into a full
@@ -108,12 +108,22 @@ export abstract class PageProvider {
 
     if (morePageCount > 0) {
       for (let i = 0; i < morePageCount; i++) {
-        currentPage = await this.getNextPageRef(currentPage);
+        const nextPage = await this.getNextPageRef(currentPage);
+        if (!nextPage) {
+          // No more pages.
+          break;
+        }
+        currentPage = nextPage;
         pages.push(currentPage);
       }
     } else {
       for (let i = 0; i > morePageCount; i--) {
-        currentPage = await this.getPreviousPageRef(currentPage);
+        const previousPage = await this.getPreviousPageRef(currentPage);
+        if (!previousPage) {
+          // No more pages.
+          break;
+        }
+        currentPage = previousPage;
         pages.push(currentPage);
       }
     }
@@ -123,6 +133,8 @@ export abstract class PageProvider {
   /**
    * Takes a PageRange and expands it into a full array of PageRefs, for each
    * page in the range.
+   *
+   * This function requires that range[0] comes before range[1].
    */
   async expandPageRange(range: PageRange): Promise<PageRef[]> {
     const pages = [];
@@ -134,7 +146,12 @@ export abstract class PageProvider {
     let pageCount = 0;
     while (!PageRef.compare(currentPage, lastPage)) {
       pages.push(currentPage);
-      currentPage = await this.getNextPageRef(currentPage);
+      const nextPage = await this.getNextPageRef(currentPage);
+      if (!nextPage) {
+        // No more pages.
+        break;
+      }
+      currentPage = nextPage;
       console.log(`Expanding page ${PageRef.toShortString(currentPage)}`);
 
       // Safeguard against accidentally requesting too many pages (e.g. passing invalid PageRanges)
@@ -156,12 +173,18 @@ export abstract class PageProvider {
    * Increments a PageRef, resolving to the next chapter if there are no more pages in the current
    * chapter.
    */
-  private async getNextPageRef(p: PageRef): Promise<PageRef> {
+  private async getNextPageRef(p: PageRef): Promise<PageRef | null> {
     // If the pageRef overflows, move to the next chapter
     const chapter = await this.getChapter(ChapterRef.fromPageRef(p));
+    if (!chapter) {
+      return null;
+    }
     if (p.pageNumber + 1 >= chapter.pages.length) {
-      return new PageRef(p.seriesId, p.chapterNumber + 1, 0);
-      // TODO: deal with no more chapters
+      // Check if the next chapter exists
+      const nextChapter = await this.getChapter(new ChapterRef(p.seriesId, p.chapterNumber + 1));
+      if (nextChapter) {
+        return new PageRef(p.seriesId, p.chapterNumber + 1, 0);
+      }
     }
     return PageRef.addPages(p, 1);
   }
@@ -169,10 +192,17 @@ export abstract class PageProvider {
   /**
    * Decrements a PageRef, resolving to the previous chapter if the specified page is the first page.
    */
-  private async getPreviousPageRef(p: PageRef): Promise<PageRef> {
+  private async getPreviousPageRef(p: PageRef): Promise<PageRef | null> {
     if (p.pageNumber === 0) {
-      // TODO: deal with no previous chapters
+      // There are no chapters before the first one.
+      if (p.chapterNumber === 0) {
+        return null;
+      }
+
       const previousChapter = await this.getChapter(new ChapterRef(p.seriesId, p.chapterNumber - 1));
+      if (!previousChapter) {
+        return null;
+      }
       return new PageRef(p.seriesId, p.chapterNumber - 1, previousChapter.pages.length - 1);
     }
     return PageRef.addPages(p, -1);

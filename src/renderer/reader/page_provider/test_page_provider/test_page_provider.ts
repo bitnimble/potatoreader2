@@ -2,23 +2,36 @@ import { ChapterData, ChapterRef, PageData, PageProvider, PageRef } from '../pag
 
 const CHAPTER_PAGE_COUNT = 30;
 
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
 export class TestPageProvider extends PageProvider {
   async getPages(pages: readonly PageRef[]): Promise<readonly PageData[]> {
     return pages.map(pageRef => this.createPage(pageRef));
   }
 
-  async getChapter(chapterRef: ChapterRef): Promise<ChapterData> {
+  async getChapter(chapterRef: ChapterRef): Promise<ChapterData | null> {
+    if (chapterRef.chapterNumber < 0) {
+      return null;
+    }
+
     // Lookup chapter in the cache first
     const cached = this.chapterCache.get(ChapterRef.toChapterKey(chapterRef));
     if (cached) {
       return cached;
     }
 
-    // Otherwise, return something generic with CHAPTER_PAGE_COUNT pages
-    return {
+    // Simulate loading time
+    await delay(1000);
+
+    const chapter = {
       chapterRef,
       pages: Array(CHAPTER_PAGE_COUNT).fill(0).map((_, i) => new PageRef(chapterRef.seriesId, chapterRef.chapterNumber, i)),
     };
+
+    this.chapterCache.set(ChapterRef.toChapterKey(chapterRef), chapter);
+
+    // Otherwise, return something generic with CHAPTER_PAGE_COUNT pages
+    return chapter;
   }
 
   private createPage(pageRef: PageRef): PageData {
@@ -37,9 +50,8 @@ export class TestPageProvider extends PageProvider {
       const uri = canvas.toDataURL('image/png');
 
       // Simulate loading time
-      return new Promise<string>(res => {
-        setTimeout(() => res(uri), 1000)
-      });
+      await delay(1000);
+      return uri;
     };
 
     return {
