@@ -16,7 +16,9 @@ export class PageListStore {
 export class PageListPresenter {
   // If multiple fetches were requested, it's possible that we might be adding a page that has already
   // been added in a different async call. This set is used to prevent duplicate pages from being added.
-  pageKeySet: Set<string> = new Set();
+  private pageKeySet: Set<string> = new Set();
+  // Store current inflight requests to help prevent double-requesting
+  private currentRequests: Set<string> = new Set();
 
   constructor(private readonly pageProvider: PageProvider) { }
 
@@ -83,47 +85,51 @@ export class PageListPresenter {
   async onViewportPageRangeChange(store: PageListStore, range: PageRange) {
     store.viewportPageRange = range;
 
+    const maybeAddMorePages = (direction: 'before' | 'after') => {
+      const pageAmount = direction === 'before' ? -1 * BUFFER_AMOUNT : BUFFER_AMOUNT;
+      const origin = direction === 'before' ? store.pages[0].pageRef : store.pages[store.pages.length - 1].pageRef;
+      const currentRequestKey = this.getCurrentRequestKey(origin, pageAmount);
+      if (!this.currentRequests.has(currentRequestKey)) {
+        this.currentRequests.add(currentRequestKey);
+        // Fire and forget
+        console.log(`Requesting ${pageAmount} from ${PageRef.toShortString(origin)}`);
+        this.requestMorePages(store, origin, direction).then(() => this.currentRequests.delete(currentRequestKey));
+      }
+    };
+
     // If we're near the start of our loaded page list, request more pages.
     if (range[0] && this.isNearStart(store, range[0])) {
-      console.log(`[start] Requesting ${-1 * BUFFER_AMOUNT} from ${PageRef.toShortString(store.pages[0].pageRef)}`);
-      const pageRefs = await this.pageProvider.getMorePages(store.pages[0].pageRef, -1 * BUFFER_AMOUNT);
-      const pages = await this.pageProvider.getPages(pageRefs);
-      runInAction(() => {
-        // If multiple fetches were requested, it's possible that we might be adding a page that has already
-        // been added in a different async call. We filter pages here that already exist to prevent accidental
-        // duplicate pages.
-        const filteredPages = pages.filter(page => !this.pageKeySet.has(PageRef.toPageKey(page.pageRef)));
-        store.pages.unshift(...filteredPages);
-        this.addToPageKeySet(filteredPages);
-
-        if (store.pages.length > MAX_PAGES) {
-          // Cull pages from the end if there are too many pages loaded
-          const removed = store.pages.splice(MAX_PAGES);
-          this.removeFromPageKeySet(removed);
-        }
-
-        console.log('Adding', filteredPages.map(p => PageRef.toShortString(p.pageRef)).join(','));
-      });
+      maybeAddMorePages('before');
     }
 
     // If we're near the end of our loaded page list, request more pages.
     if (range[1] && this.isNearEnd(store, range[1])) {
-      console.log(`[end] Requesting ${BUFFER_AMOUNT} from ${PageRef.toShortString(store.pages[store.pages.length - 1].pageRef)}`);
-      const origin = store.pages[store.pages.length - 1].pageRef;
-      const pageRefs = await this.pageProvider.getMorePages(origin, BUFFER_AMOUNT);
-      const pages = await this.pageProvider.getPages(pageRefs);
-      runInAction(() => {
-        const filteredPages = pages.filter(page => !this.pageKeySet.has(PageRef.toPageKey(page.pageRef)));
-        store.pages.push(...filteredPages);
-        this.addToPageKeySet(filteredPages);
-
-        // Cull pages from the start if there are too many pages loaded
-        if (store.pages.length > MAX_PAGES) {
-          const removed = store.pages.splice(0, MAX_PAGES - store.pages.length);
-          this.removeFromPageKeySet(removed);
-        }
-      });
+      maybeAddMorePages('after');
     }
+  }
+
+  private async requestMorePages(store: PageListStore, origin: PageRef, direction: 'before' | 'after') {
+    const pageRefs = await this.pageProvider.getMorePages(origin, direction === 'before' ? -1 * BUFFER_AMOUNT : BUFFER_AMOUNT);
+    const pages = await this.pageProvider.getPages(pageRefs);
+    runInAction(() => {
+      const filteredPages = pages.filter(page => !this.pageKeySet.has(PageRef.toPageKey(page.pageRef)));
+      if (direction === 'before') {
+        store.pages.unshift(...filteredPages);
+      } else {
+        store.pages.push(...filteredPages);
+      }
+      this.addToPageKeySet(filteredPages);
+
+      if (store.pages.length > MAX_PAGES) {
+        // Cull pages from the end if there are too many pages loaded
+        const removed = direction === 'before'
+            ? store.pages.splice(MAX_PAGES)
+            : store.pages.splice(0, MAX_PAGES - store.pages.length);
+        this.removeFromPageKeySet(removed);
+      }
+
+      console.log('Adding', filteredPages.map(p => PageRef.toShortString(p.pageRef)).join(','));
+    });
   }
 
   /**
@@ -156,5 +162,9 @@ export class PageListPresenter {
 
   private removeFromPageKeySet(pages: readonly PageData[]) {
     pages.forEach(p => this.pageKeySet.delete(PageRef.toPageKey(p.pageRef)));
+  }
+
+  private getCurrentRequestKey(origin: PageRef, pageCount: number) {
+    return `${PageRef.toPageKey(origin)}-${pageCount}`;
   }
 }
