@@ -17,7 +17,7 @@ export class PageListPresenter {
   constructor(private readonly pageProvider: PageProvider) { }
 
   async loadPages(store: PageListStore) {
-    const pages = await this.pageProvider.getPages([
+    const pages = await this.pageProvider.getPageRange([
       { seriesId: 'test-series', chapterNumber: 0, pageNumber: 0 },
       { seriesId: 'test-series', chapterNumber: 0, pageNumber: 10 },
     ]);
