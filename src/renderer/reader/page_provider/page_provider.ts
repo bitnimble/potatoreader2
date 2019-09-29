@@ -97,15 +97,25 @@ export abstract class PageProvider {
   /**
    * Takes a starting PageRef and a number of additional pages to request, and expands it into a full
    * array of PageRefs for each page in the range.
+   *
+   * Requesting a negative number of pages will return pages before `origin`.
    * @param origin
    * @param morePageCount
    */
   async getMorePages(origin: PageRef, morePageCount: number): Promise<readonly PageRef[]> {
     const pages = [];
     let currentPage: PageRef = origin;
-    for (let i = 0; i < morePageCount; i++) {
-      currentPage = await this.getNextPageRef(currentPage);
-      pages.push(currentPage);
+
+    if (morePageCount > 0) {
+      for (let i = 0; i < morePageCount; i++) {
+        currentPage = await this.getNextPageRef(currentPage);
+        pages.push(currentPage);
+      }
+    } else {
+      for (let i = 0; i > morePageCount; i--) {
+        currentPage = await this.getPreviousPageRef(currentPage);
+        pages.push(currentPage);
+      }
     }
     return pages;
   }
@@ -151,7 +161,20 @@ export abstract class PageProvider {
     const chapter = await this.getChapter(ChapterRef.fromPageRef(p));
     if (p.pageNumber + 1 >= chapter.pages.length) {
       return new PageRef(p.seriesId, p.chapterNumber + 1, 0);
+      // TODO: deal with no more chapters
     }
     return PageRef.addPages(p, 1);
+  }
+
+  /**
+   * Decrements a PageRef, resolving to the previous chapter if the specified page is the first page.
+   */
+  private async getPreviousPageRef(p: PageRef): Promise<PageRef> {
+    if (p.pageNumber === 0) {
+      // TODO: deal with no previous chapters
+      const previousChapter = await this.getChapter(new ChapterRef(p.seriesId, p.chapterNumber - 1));
+      return new PageRef(p.seriesId, p.chapterNumber - 1, previousChapter.pages.length - 1);
+    }
+    return PageRef.addPages(p, -1);
   }
 }
