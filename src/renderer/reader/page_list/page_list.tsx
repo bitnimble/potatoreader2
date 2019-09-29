@@ -1,12 +1,12 @@
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import React from 'react';
-import { PageData, PageRef } from '../page_types';
+import { Page } from '../page_types';
 import styles from './page_list.css';
 import { PlaceholderPage } from './placeholder_page';
 
 type Props = {
-  pages: readonly PageData[];
+  pages: readonly Page[];
   onListScroll(e: React.UIEvent<HTMLDivElement>): void;
   onMount(): void;
 };
@@ -24,7 +24,7 @@ export class PageList extends React.Component<Props> {
     return (
       <div className={styles.pageList} onScroll={this.props.onListScroll}>
         {pages.map(page => (
-          <PageView key={PageRef.toPageKey(page.pageRef)} page={page}/>
+          <PageView key={Page.toPageKey(page)} page={page}/>
         ))}
       </div>
     );
@@ -32,7 +32,7 @@ export class PageList extends React.Component<Props> {
 }
 
 type PageViewProps = {
-  page: PageData;
+  page: Page;
 };
 
 @observer

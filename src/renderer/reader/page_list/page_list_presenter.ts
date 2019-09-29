@@ -1,6 +1,6 @@
 import { action, observable, runInAction } from 'mobx';
 import { PageProvider } from '../page_provider/page_provider';
-import { PageData, PageRange, PageRef } from '../page_types';
+import { ChapterRef, Page, PageRange } from '../page_types';
 
 const BUFFER_DISTANCE = 2;
 const BUFFER_AMOUNT = 5;
@@ -8,10 +8,10 @@ const MAX_PAGES = 30;
 
 export class PageListStore {
   @observable.ref
-  viewportPageRange: PageRange = [null, null];
+  viewportPageRange?: PageRange;
 
   @observable.shallow
-  pages: PageData[] = [];
+  pages: Page[] = [];
 }
 
 export class PageListPresenter {
@@ -24,13 +24,13 @@ export class PageListPresenter {
   constructor(private readonly pageProvider: PageProvider) { }
 
   async loadPages(store: PageListStore) {
-    const pages = await this.pageProvider.getPageRange([
-      { seriesId: 'test-series', chapterNumber: 0, pageNumber: 0 },
-      { seriesId: 'test-series', chapterNumber: 0, pageNumber: 10 },
-    ]);
+    const chapter = await this.pageProvider.getChapter(new ChapterRef('test-series', 0));
+    if (!chapter) {
+      return;
+    }
     runInAction(() => {
-      store.pages = [...pages];
-      this.addToPageKeySet(pages);
+      store.pages = [...chapter.pages];
+      this.addToPageKeySet(chapter.pages);
     });
   }
 
@@ -41,8 +41,8 @@ export class PageListPresenter {
 
     // Loop through the pages to figure out the current top and bottom pages
     const pageDivs = [...target.children];
-    let topPage: PageRef | null = null;
-    let bottomPage: PageRef | null = null;
+    let topPage: Page | null = null;
+    let bottomPage: Page | null = null;
 
     for (let i = 0; i < pageDivs.length; i++) {
       const pageDiv = pageDivs[i];
@@ -58,13 +58,13 @@ export class PageListPresenter {
       //
       // So, we pick `i - 1` to retrieve the first page.
       if (topPage == null && (pageDiv as HTMLElement).offsetTop > listScrollTop) {
-        topPage = store.pages[i - 1].pageRef;
+        topPage = store.pages[i - 1];
       }
       // The bottom page is the first page where it is positioned below the bottom of our viewport,
       // i.e. below (scrollTop + clientHeight). Similar to topPage, we pick the previous one since
       // the page with offsetTop > viewportBottom will actually be the next page.
       if (bottomPage == null && (pageDiv as HTMLElement).offsetTop > (listScrollTop + listClientHeight)) {
-        bottomPage = store.pages[i - 1].pageRef;
+        bottomPage = store.pages[i - 1];
       }
       // If we've found both pages already, we can early-exit
       if (topPage != null && bottomPage != null) {
@@ -73,10 +73,17 @@ export class PageListPresenter {
     }
     // If no page had its top boundary past the viewport, that means we've scrolled to the bottom.
     if (bottomPage == null) {
-      bottomPage = store.pages[store.pages.length - 1].pageRef;
+      bottomPage = store.pages[store.pages.length - 1];
+    }
+    if (topPage == null) {
+      topPage = store.pages[0];
     }
 
+
     const range: PageRange = [topPage, bottomPage];
+    if (store.viewportPageRange == null) {
+      store.viewportPageRange = range;
+    }
     if (!PageRange.compare(store.viewportPageRange, range)) {
       this.onViewportPageRangeChange(store, range);
     }
@@ -88,7 +95,7 @@ export class PageListPresenter {
 
     const maybeAddMorePages = (direction: 'before' | 'after') => {
       const pageAmount = direction === 'before' ? -1 * BUFFER_AMOUNT : BUFFER_AMOUNT;
-      const origin = direction === 'before' ? store.pages[0].pageRef : store.pages[store.pages.length - 1].pageRef;
+      const origin = direction === 'before' ? store.pages[0] : store.pages[store.pages.length - 1];
       const currentRequestKey = this.getCurrentRequestKey(origin, pageAmount);
       if (!this.currentRequests.has(currentRequestKey)
           // Avoid requesting pages before the first page of the series
@@ -96,7 +103,7 @@ export class PageListPresenter {
       ) {
         this.currentRequests.add(currentRequestKey);
         // Fire and forget
-        console.log(`Requesting ${pageAmount} from ${PageRef.toShortString(origin)}`);
+        console.log(`Requesting ${pageAmount} from ${Page.toShortString(origin)}`);
         this.requestMorePages(store, origin, direction).then(() => this.currentRequests.delete(currentRequestKey));
       }
     };
@@ -112,11 +119,10 @@ export class PageListPresenter {
     }
   }
 
-  private async requestMorePages(store: PageListStore, origin: PageRef, direction: 'before' | 'after') {
-    const pageRefs = await this.pageProvider.getMorePages(origin, direction === 'before' ? -1 * BUFFER_AMOUNT : BUFFER_AMOUNT);
-    const pages = await this.pageProvider.getPages(pageRefs);
+  private async requestMorePages(store: PageListStore, origin: Page, direction: 'before' | 'after') {
+    const pages = await this.pageProvider.getMorePages(origin, direction === 'before' ? -1 * BUFFER_AMOUNT : BUFFER_AMOUNT);
     runInAction(() => {
-      const filteredPages = pages.filter(page => !this.pageKeySet.has(PageRef.toPageKey(page.pageRef)));
+      const filteredPages = pages.filter(page => !this.pageKeySet.has(Page.toPageKey(page)));
       if (direction === 'before') {
         store.pages.unshift(...filteredPages);
       } else {
@@ -133,16 +139,16 @@ export class PageListPresenter {
         this.removeFromPageKeySet(removed);
       }
 
-      console.log('Adding', filteredPages.map(p => PageRef.toShortString(p.pageRef)).join(','));
+      console.log('Adding', filteredPages.map(p => Page.toShortString(p)).join(','));
     });
   }
 
   /**
    * Returns true if the provided PageRef is within the last `bufferDistance` pages.
    */
-  private isNearEnd(store: PageListStore, page: PageRef) {
+  private isNearEnd(store: PageListStore, page: Page) {
     for (let i = store.pages.length - 1; i >= store.pages.length - BUFFER_DISTANCE; i--) {
-      if (PageRef.compare(store.pages[i].pageRef, page)) {
+      if (Page.compare(store.pages[i], page)) {
         return true;
       }
     }
@@ -152,24 +158,24 @@ export class PageListPresenter {
   /**
    * Returns true if the provided PageRef is within the first `bufferDistance` pages.
    */
-  private isNearStart(store: PageListStore, page: PageRef) {
+  private isNearStart(store: PageListStore, page: Page) {
     for (let i = 0; i < BUFFER_DISTANCE; i++) {
-      if (PageRef.compare(store.pages[i].pageRef, page)) {
+      if (Page.compare(store.pages[i], page)) {
         return true;
       }
     }
     return false;
   }
 
-  private addToPageKeySet(pages: readonly PageData[]) {
-    pages.map(page => PageRef.toPageKey(page.pageRef)).forEach(key => this.pageKeySet.add(key));
+  private addToPageKeySet(pages: readonly Page[]) {
+    pages.map(page => Page.toPageKey(page)).forEach(key => this.pageKeySet.add(key));
   }
 
-  private removeFromPageKeySet(pages: readonly PageData[]) {
-    pages.forEach(p => this.pageKeySet.delete(PageRef.toPageKey(p.pageRef)));
+  private removeFromPageKeySet(pages: readonly Page[]) {
+    pages.forEach(p => this.pageKeySet.delete(Page.toPageKey(p)));
   }
 
-  private getCurrentRequestKey(origin: PageRef, pageCount: number) {
-    return `${PageRef.toPageKey(origin)}-${pageCount}`;
+  private getCurrentRequestKey(origin: Page, pageCount: number) {
+    return `${Page.toPageKey(origin)}-${pageCount}`;
   }
 }
