@@ -38,7 +38,7 @@ export class TestPageProvider extends PageProvider {
 
       // Simulate loading time
       return new Promise<string>(res => {
-        setTimeout(() => res(uri), 2000)
+        setTimeout(() => res(uri), 1000)
       });
     };
 
