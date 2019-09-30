@@ -96,6 +96,10 @@ const config: webpack.Configuration[] = [
     ],
     resolve: {
       extensions: ['.tsx', '.ts', '.js', '.jsx'],
+      modules: [
+        path.resolve(__dirname, '../node_modules'),
+        path.resolve(__dirname, '../src'),
+      ]
     },
     output: {
       filename: 'index.js',
