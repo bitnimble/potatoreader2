@@ -80,19 +80,17 @@ export abstract class PageProvider {
    * chapter.
    */
   private async getNextPageRef(p: Page): Promise<Page | null> {
-    // If the pageRef overflows, move to the next chapter
-    const chapter = await this.getChapter(ChapterRef.fromPageRef(p));
-    if (!chapter) {
-      return null;
-    }
-    if (p.pageNumber + 1 >= chapter.pages.length) {
-      // Check if the next chapter exists
+    // If we're on the last page of the chapter, move to the next chapter
+    if (p.pageNumber === p.chapter.pages.length - 1) {
+      // Try to get first page of the next chapter
       const nextChapter = await this.getChapter(new ChapterRef(p.seriesId, p.chapterNumber + 1));
       if (nextChapter) {
         return nextChapter.pages[0];
       }
+      // No more pages.
+      return null;
     }
-    return chapter.pages[p.pageNumber + 1];
+    return p.chapter.pages[p.pageNumber + 1];
   }
 
   /**
@@ -105,17 +103,13 @@ export abstract class PageProvider {
         return null;
       }
 
+      // Try to get last page of the previous chapter
       const previousChapter = await this.getChapter(new ChapterRef(p.seriesId, p.chapterNumber - 1));
       if (!previousChapter) {
         return null;
       }
       return previousChapter.pages[previousChapter.pages.length - 1];
     }
-    const chapterRef = ChapterRef.fromPageRef(p);
-    const chapter = await this.getChapter(chapterRef);
-    if (!chapter) {
-      throw new Error(`Expected to find existing chapter ${ChapterRef.toChapterKey(chapterRef)}`)
-    }
-    return chapter.pages[p.pageNumber - 1];
+    return p.chapter.pages[p.pageNumber - 1];
   }
 }

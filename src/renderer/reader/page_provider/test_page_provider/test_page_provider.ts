@@ -20,11 +20,12 @@ export class TestPageProvider extends PageProvider {
     // Simulate loading time
     await delay(1000);
 
-    const chapter = {
+    const chapter: ChapterData = {
       chapterRef,
-      pages: Array(CHAPTER_PAGE_COUNT).fill(0).map((_, i) =>
-          new Page(chapterRef.seriesId, chapterRef.chapterNumber, i, () => this.createPage(chapterRef, i))),
+      pages: [],
     };
+    chapter.pages = Array(CHAPTER_PAGE_COUNT).fill(0).map((_, i) =>
+        new Page(chapter, i, () => this.createPage(chapterRef, i))),
 
     this.chapterCache.set(ChapterRef.toChapterKey(chapterRef), chapter);
 

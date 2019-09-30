@@ -1,10 +1,17 @@
 export class Page {
   constructor(
-    readonly seriesId: string,
-    readonly chapterNumber: number, // zero-based index
+    readonly chapter: ChapterData,
     readonly pageNumber: number, // zero-based index
     readonly loadImage: () => Promise<string>, // function which returns a URI to display
   ) { }
+
+  get seriesId() {
+    return this.chapter.chapterRef.seriesId;
+  }
+
+  get chapterNumber() {
+    return this.chapter.chapterRef.chapterNumber;
+  }
 }
 
 /**
