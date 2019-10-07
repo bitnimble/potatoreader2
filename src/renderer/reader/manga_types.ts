@@ -1,16 +1,16 @@
 export class Page {
   constructor(
-    readonly chapter: ChapterData,
+    readonly chapter: Chapter,
     readonly pageNumber: number, // zero-based index
     readonly loadImage: () => Promise<string>, // function which returns a URI to display
   ) { }
 
   get seriesId() {
-    return this.chapter.chapterRef.seriesId;
+    return this.chapter.seriesId;
   }
 
   get chapterNumber() {
-    return this.chapter.chapterRef.chapterNumber;
+    return this.chapter.chapterNumber;
   }
 }
 
@@ -56,25 +56,20 @@ export namespace PageRange {
   }
 }
 
-export class ChapterRef {
+export class Chapter {
   constructor(
     readonly seriesId: string,
     readonly chapterNumber: number, // zero-based index
+    readonly chapterUrl: string,
+    readonly previousChapter: Chapter | null,
+    readonly nextChapter: Chapter | null,
+    readonly getPages: () => Promise<readonly Page[]>,
     // TODO: chapter title, etc
   ) { }
 }
 
-export namespace ChapterRef {
-  export function fromPageRef(p: Page) {
-    return new ChapterRef(p.seriesId, p.chapterNumber);
-  }
-
-  export function toChapterKey(c: ChapterRef) {
+export namespace Chapter {
+  export function toChapterKey(c: Chapter) {
     return `${c.seriesId}-${c.chapterNumber}`;
   }
 }
-
-export type ChapterData = {
-  chapterRef: ChapterRef;
-  pages: readonly Page[];
-};

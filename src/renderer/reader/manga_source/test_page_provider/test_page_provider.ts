@@ -1,18 +1,20 @@
-import { ChapterData, ChapterRef, Page } from '../../page_types';
-import { PageProvider } from '../page_provider';
+import { Chapter, Page } from '../../manga_types';
+import { MangaSource } from '../manga_source';
 
 const CHAPTER_PAGE_COUNT = 30;
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-export class TestPageProvider extends PageProvider {
-  async getChapter(chapterRef: ChapterRef): Promise<ChapterData | null> {
+export class TestPageProvider extends MangaSource {
+  async getChapters(manga:
+
+  async getChapter(chapter: Chapter): Promise<Chapter | null> {
     if (chapterRef.chapterNumber < 0) {
       return null;
     }
 
     // Lookup chapter in the cache first
-    const cached = this.chapterCache.get(ChapterRef.toChapterKey(chapterRef));
+    const cached = this.chapterCache.get(Chapter.toChapterKey(chapterRef));
     if (cached) {
       return cached;
     }
@@ -20,20 +22,18 @@ export class TestPageProvider extends PageProvider {
     // Simulate loading time
     await delay(1000);
 
-    const chapter: ChapterData = {
+    const chapter:  = {
       chapterRef,
       pages: [],
     };
-    chapter.pages = Array(CHAPTER_PAGE_COUNT).fill(0).map((_, i) =>
+    chapter.getPages = Array(CHAPTER_PAGE_COUNT).fill(0).map((_, i) =>
         new Page(chapter, i, () => this.createPage(chapterRef, i))),
+    this.chapterCache.set(Chapter.toChapterKey(chapterRef), chapter);
 
-    this.chapterCache.set(ChapterRef.toChapterKey(chapterRef), chapter);
-
-    // Otherwise, return something generic with CHAPTER_PAGE_COUNT pages
     return chapter;
   }
 
-  private async createPage(chapterRef: ChapterRef, pageNumber: number): Promise<string> {
+  private async createPage(chapterRef: Chapter, pageNumber: number): Promise<string> {
     const canvas = document.createElement('canvas');
     canvas.width = 500;
     canvas.height = 800;

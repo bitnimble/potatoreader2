@@ -1,11 +1,11 @@
 import { observer } from 'mobx-react-lite';
 import React from 'react';
-import { TestPageProvider } from '../page_provider/test_page_provider/test_page_provider';
+import { MangarockPageProvider } from '../page_provider/web_page_provider/mangarock_page_provider';
 import { PageList } from './page_list';
 import { PageListPresenter, PageListStore } from './page_list_presenter';
 
 export function createPageList() {
-  const pageProvider = new TestPageProvider();
+  const pageProvider = new MangarockPageProvider();
   const store = new PageListStore();
   const presenter = new PageListPresenter(pageProvider);
 

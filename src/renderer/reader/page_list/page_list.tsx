@@ -1,7 +1,7 @@
 import { observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import React from 'react';
-import { Page } from '../page_types';
+import { Page } from '../manga_types';
 import styles from './page_list.css';
 import { PlaceholderPage } from './placeholder_page';
 

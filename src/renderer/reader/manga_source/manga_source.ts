@@ -1,12 +1,12 @@
-import { ChapterData, ChapterRef, Page, PageRange } from '../page_types';
+import { Chapter, Page, PageRange } from '../manga_types';
 
 const PAGE_REQUEST_LIMIT = 100;
 
-export abstract class PageProvider {
-  // Map from chapter key to ChapterData
-  protected chapterCache: Map<string, ChapterData> = new Map();
+export abstract class MangaSource {
+  // Map from chapter key to Chapter
+  protected chapterCache: Map<string, Chapter> = new Map();
 
-  abstract getChapter(chapter: ChapterRef): Promise<ChapterData | null>;
+  abstract getChapter(chapter: Chapter): Promise<Chapter | null>;
 
   /**
    * Takes a starting PageRef and a number of additional pages to request, and expands it into a full
@@ -81,16 +81,16 @@ export abstract class PageProvider {
    */
   private async getNextPageRef(p: Page): Promise<Page | null> {
     // If we're on the last page of the chapter, move to the next chapter
-    if (p.pageNumber === p.chapter.pages.length - 1) {
+    if (p.pageNumber === p.chapter.getPages.length - 1) {
       // Try to get first page of the next chapter
-      const nextChapter = await this.getChapter(new ChapterRef(p.seriesId, p.chapterNumber + 1));
+      const nextChapter = p.chapter.nextChapter;
       if (nextChapter) {
-        return nextChapter.pages[0];
+        return (await nextChapter.getPages())[0];
       }
       // No more pages.
       return null;
     }
-    return p.chapter.pages[p.pageNumber + 1];
+    return (await p.chapter.getPages())[p.pageNumber + 1];
   }
 
   /**
@@ -104,12 +104,12 @@ export abstract class PageProvider {
       }
 
       // Try to get last page of the previous chapter
-      const previousChapter = await this.getChapter(new ChapterRef(p.seriesId, p.chapterNumber - 1));
+      const previousChapter = p.chapter.previousChapter;
       if (!previousChapter) {
         return null;
       }
-      return previousChapter.pages[previousChapter.pages.length - 1];
+      return (await previousChapter.getPages())[previousChapter.getPages.length - 1];
     }
-    return p.chapter.pages[p.pageNumber - 1];
+    return (await p.chapter.getPages())[p.pageNumber - 1];
   }
 }

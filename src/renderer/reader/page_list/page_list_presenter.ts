@@ -1,6 +1,6 @@
 import { action, observable, runInAction } from 'mobx';
-import { PageProvider } from '../page_provider/page_provider';
-import { ChapterRef, Page, PageRange } from '../page_types';
+import { PageProvider } from '../manga_source/manga_source';
+import { Chapter, Page, PageRange } from '../manga_types';
 
 const BUFFER_DISTANCE = 2;
 const BUFFER_AMOUNT = 5;
@@ -24,13 +24,13 @@ export class PageListPresenter {
   constructor(private readonly pageProvider: PageProvider) { }
 
   async loadPages(store: PageListStore) {
-    const chapter = await this.pageProvider.getChapter(new ChapterRef('test-series', 0));
+    const chapter = await this.pageProvider.getChapter(new Chapter('test-series', 0));
     if (!chapter) {
       return;
     }
     runInAction(() => {
-      store.pages = [...chapter.pages];
-      this.addToPageKeySet(chapter.pages);
+      store.pages = [...chapter.getPages];
+      this.addToPageKeySet(chapter.getPages);
     });
   }
 
