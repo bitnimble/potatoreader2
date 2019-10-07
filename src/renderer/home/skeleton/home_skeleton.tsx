@@ -2,17 +2,18 @@ import { observable } from 'mobx';
 import { observer } from 'mobx-react';
 import React from 'react';
 import styles from './home_skeleton.css';
+import { MangaSourceId } from 'renderer/reader/manga_source/manga_sources';
 
 export class HomeSkeleton {
   @observable.ref
   Header?: React.ComponentType;
 
-  Library?: React.ComponentType<{ loadReader(): void }>;
+  Library?: React.ComponentType<{ loadReader(sourceId: MangaSourceId, seriesId: string): void }>;
 }
 
 type Props = {
   skeleton: HomeSkeleton;
-  loadReader(): void;
+  loadReader(sourceId: MangaSourceId, seriesId: string): void,
 };
 
 @observer

@@ -1,4 +1,6 @@
 import { Chapter, Page, PageRange } from '../manga_types';
+import { TestPageProvider } from './test_page_provider/test_page_provider';
+import { MangaRock } from './web_manga_source/mangarock';
 
 const PAGE_REQUEST_LIMIT = 100;
 

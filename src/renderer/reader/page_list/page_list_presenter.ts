@@ -1,6 +1,6 @@
 import { action, observable, runInAction } from 'mobx';
 import { MangaSource } from '../manga_source/manga_source';
-import { Chapter, Page, PageRange } from '../manga_types';
+import { Page, PageRange } from '../manga_types';
 
 const BUFFER_DISTANCE = 3;
 const MAX_PAGES = 50;
@@ -25,9 +25,8 @@ export class PageListPresenter {
 
   constructor(private readonly mangaSource: MangaSource) { }
 
-  async loadPages(store: PageListStore) {
-    const series = await this.mangaSource.getMostPopularManga();
-    const chapter = await this.mangaSource.getChapter(series, 0);
+  async loadPages(store: PageListStore, seriesId: string) {
+    const chapter = await this.mangaSource.getChapter(seriesId, 0);
     if (!chapter) {
       return;
     }

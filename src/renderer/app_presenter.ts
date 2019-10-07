@@ -1,15 +1,13 @@
 import { action, observable } from 'mobx';
 
-type Page = 'home' | 'reader';
-
 export class AppStore {
   @observable.ref
-  activePage: Page = 'home';
+  Content?: React.ComponentType;
 }
 
 export class AppPresenter {
   @action
-  setActivePage(store: AppStore, page: Page) {
-    store.activePage = page;
+  setContent(store: AppStore, Content: React.ComponentType) {
+    store.Content = Content;
   }
 }

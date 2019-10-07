@@ -2,16 +2,13 @@ import { observer } from 'mobx-react-lite';
 import React from 'react';
 import { PageList } from './page_list';
 import { PageListPresenter, PageListStore } from './page_list_presenter';
-import { MangaRock } from '../manga_source/web_manga_source/mangarock';
-import { TestPageProvider } from '../manga_source/test_page_provider/test_page_provider';
+import { MangaSource } from '../manga_source/manga_source';
 
-export function createPageList() {
-  const mangaSource = new MangaRock();
-  // const mangaSource = new TestPageProvider();
+export function createPageList(source: MangaSource, seriesId: string) {
   const store = new PageListStore();
-  const presenter = new PageListPresenter(mangaSource);
+  const presenter = new PageListPresenter(source);
 
-  const onMount = () => presenter.loadPages(store);
+  const onMount = () => presenter.loadPages(store, seriesId);
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => presenter.onScroll(store, e);
 
   return observer(() => (
