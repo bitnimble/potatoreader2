@@ -6,6 +6,7 @@ function createWindow() {
     height: 720,
     webPreferences: {
       nodeIntegration: true,
+      webSecurity: false,
     },
   });
   win.loadFile('index.html');

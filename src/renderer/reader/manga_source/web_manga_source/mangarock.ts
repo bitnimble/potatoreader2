@@ -1,5 +1,5 @@
-import { Chapter, ChapterData, Page } from 'renderer/reader/manga_types';
-import { PageProvider as MangaSource } from 'renderer/reader/page_provider/page_provider';
+import { Chapter, Page } from 'renderer/reader/manga_types';
+import { MangaSource } from 'renderer/reader/manga_source/manga_source';
 import { HttpClient } from './network';
 
 const baseUrl = 'https://mangarock.com';
@@ -9,29 +9,26 @@ const lang = 'en';
 export class MangaRock extends MangaSource {
   private http: HttpClient = new HttpClient();
 
-  private async getMostPopularManga(): Promise<string> {
+  async getMostPopularManga(): Promise<string> {
     const resp = await this.http.get(`${apiUrl}/mrs_latest`).then(r => r.json());
-    const mostPopular = resp.data.filter((manga: any) => manga.rank === 1);
+    const mostPopular = resp.data.sort((a: any, b: any) => a.rank - b.rank)[0];
     return mostPopular.oid;
   }
 
-  private async getChapters(oid: string): Promise<Chapter[]> {
+  protected async requestChapters(oid: string): Promise<Chapter[]> {
     const mangaInfo = await this.http.get(`${apiUrl}/info?oid=${oid}&Country=`).then(r => r.json());
     const chapterData: any[] = mangaInfo.data.chapters;
 
-    chapterData.map((chapter, i) => new Chapter(oid, i, chapter.oid, chapterData[i - 1] || null, chapterData[i + 1] || null)).reverse();
+    const chapters = chapterData.map((chapter, i) => new Chapter(oid, i, `/pagesv2?oid=${chapter.oid}`));
+    this.chapterCache.set(oid, chapters);
+    return chapters;
   }
 
-  async getChapter(chapterRef: Chapter): Promise<ChapterData | null> {
-    const resp = await this.http.get(`${apiUrl}/${this.getChapterUrl(chapterRef)}`).then(r => r.json());
+  async getPages(chapter: Chapter): Promise<Page[]> {
+    const resp = await this.http.get(`${apiUrl}${chapter.chapterUrl}`).then(r => r.json());
     const pageUrls: string[] = resp.data.map((page: any) => page.url);
 
-    const chapter: ChapterData = {
-      chapterRef,
-      pages: [],
-    }
-    chapter.pages = pageUrls.map((url, i) => new Page(chapter, i, () => this.fetchAndDecodeMri(url)));
-    return chapter;
+    return pageUrls.map((url, i) => new Page(chapter, i, i === pageUrls.length - 1, () => this.fetchAndDecodeMri(url)));
   }
 
   // Decoding taken from Tachiyomi: https://github.com/inorichi/tachiyomi-extensions/blob/master/src/en/mangarock/src/eu/kanade/tachiyomi/extension/en/mangarock/MangaRock.kt#L264
@@ -72,9 +69,5 @@ export class MangaRock extends MangaSource {
     }
 
     return `data:image/webp;base64,${btoa(encoded.join(''))}`;
-  }
-
-  private getChapterUrl(chapterRef: Chapter) {
-    return `${chapterRef.seriesId}/${chapterRef.chapterNumber}`;
   }
 }

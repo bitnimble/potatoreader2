@@ -1,36 +1,38 @@
 import { Chapter, Page } from '../../manga_types';
 import { MangaSource } from '../manga_source';
 
+const CHAPTER_COUNT = 10;
 const CHAPTER_PAGE_COUNT = 30;
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 export class TestPageProvider extends MangaSource {
-  async getChapters(manga:
+  async getMostPopularManga() {
+    return '1';
+  }
 
-  async getChapter(chapter: Chapter): Promise<Chapter | null> {
-    if (chapterRef.chapterNumber < 0) {
-      return null;
-    }
+  protected async requestChapters(id: string) {
+    return Array(CHAPTER_COUNT).fill(0).map((_, i) => new Chapter(
+      id,
+      i,
+      `/chapter-${i}`,
+    ));
+  }
 
-    // Lookup chapter in the cache first
-    const cached = this.chapterCache.get(Chapter.toChapterKey(chapterRef));
-    if (cached) {
-      return cached;
+  async getPages(chapter: Chapter) {
+    if (chapter.chapterNumber < 0) {
+      throw new Error('[TestPageProvider] cannot retrieve chapter before chapter 0');
     }
 
     // Simulate loading time
     await delay(1000);
 
-    const chapter:  = {
-      chapterRef,
-      pages: [],
-    };
-    chapter.getPages = Array(CHAPTER_PAGE_COUNT).fill(0).map((_, i) =>
-        new Page(chapter, i, () => this.createPage(chapterRef, i))),
-    this.chapterCache.set(Chapter.toChapterKey(chapterRef), chapter);
-
-    return chapter;
+    return Array(CHAPTER_PAGE_COUNT).fill(0).map((_, i) => new Page(
+      chapter,
+      i,
+      i === CHAPTER_PAGE_COUNT - 1,
+      () => this.createPage(chapter, i),
+    ));
   }
 
   private async createPage(chapterRef: Chapter, pageNumber: number): Promise<string> {

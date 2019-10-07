@@ -1,4 +1,4 @@
-import { observable, runInAction } from 'mobx';
+import { observable, runInAction, computed } from 'mobx';
 import { observer } from 'mobx-react';
 import React from 'react';
 import { Page } from '../manga_types';
@@ -7,6 +7,7 @@ import { PlaceholderPage } from './placeholder_page';
 
 type Props = {
   pages: readonly Page[];
+  topPage?: Page;
   onListScroll(e: React.UIEvent<HTMLDivElement>): void;
   onMount(): void;
 };
@@ -18,11 +19,18 @@ export class PageList extends React.Component<Props> {
   }
 
   render() {
-    const { pages } = this.props;
+    const { pages, topPage } = this.props;
     console.log('rendering page list');
 
     return (
       <div className={styles.pageList} onScroll={this.props.onListScroll}>
+        <div className={styles.debugPanel}>
+          {topPage && 'Current page: ' + Page.toShortString(topPage)}
+          <br></br>
+          {Page.toShortString(pages[0])}
+          <br></br>
+          {Page.toShortString(pages[pages.length - 1])}
+        </div>
         {pages.map(page => (
           <PageView key={Page.toPageKey(page)} page={page}/>
         ))}

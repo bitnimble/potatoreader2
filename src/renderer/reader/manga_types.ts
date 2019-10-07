@@ -2,6 +2,7 @@ export class Page {
   constructor(
     readonly chapter: Chapter,
     readonly pageNumber: number, // zero-based index
+    readonly isLastPage: boolean,
     readonly loadImage: () => Promise<string>, // function which returns a URI to display
   ) { }
 
@@ -61,9 +62,6 @@ export class Chapter {
     readonly seriesId: string,
     readonly chapterNumber: number, // zero-based index
     readonly chapterUrl: string,
-    readonly previousChapter: Chapter | null,
-    readonly nextChapter: Chapter | null,
-    readonly getPages: () => Promise<readonly Page[]>,
     // TODO: chapter title, etc
   ) { }
 }
