@@ -91,19 +91,12 @@ export class PageListPresenter {
     }
     if (!PageRange.compare(store.viewportPageRange, range)) {
       runInAction(() => store.topPage = topPage || undefined);
-      const pageOffset = target.scrollTop - topPageDiv.offsetTop;
-      const originalScrollPosition = target.scrollTop;
-      const didChange = await this.onViewportPageRangeChange(store, range);
-      if (didChange) {
-        // Reset scroll position to be the same as the original topPage position
-        target.scrollTop = topPageDiv.offsetTop + pageOffset;
-        console.log(`Scrolling to ${topPageDiv.offsetTop + pageOffset}`);
-      }
+      this.onViewportPageRangeChange(store, range, target, topPageDiv);
     }
   }
 
   @action
-  async onViewportPageRangeChange(store: PageListStore, range: PageRange) {
+  async onViewportPageRangeChange(store: PageListStore, range: PageRange, target: HTMLElement, topPageDiv: HTMLElement) {
     store.viewportPageRange = range;
 
     const maybeAppendChapter = async (direction: 'before' | 'after') => {
@@ -114,24 +107,32 @@ export class PageListPresenter {
           && !(origin.chapterNumber === 0 && origin.pageNumber === 0 && direction === 'before')
       ) {
         this.currentRequests.add(currentRequestKey);
-        // Fire and forget
         console.log(`Requesting '${direction}' from ${Page.toShortString(origin)}`);
-        await this.requestAdditionalChapter(store, origin, direction).then(() => this.currentRequests.delete(currentRequestKey));
-
-        return true;
+        let pageOffset: number | undefined;
+        await runInAction(async () => {
+          await this.requestAdditionalChapter(store, origin, direction).then(() => this.currentRequests.delete(currentRequestKey));
+          
+          // Calculate current position before action exits
+          pageOffset = target.scrollTop - topPageDiv.offsetTop;
+        });
+        // Now reset scroll position to the original page
+        if (pageOffset == null) {
+          throw new Error('weird async shit');
+        }
+        target.scrollTop = topPageDiv.offsetTop + pageOffset;
+        console.log(`Scrolling to ${topPageDiv.offsetTop + pageOffset}`);
       }
       console.log('Already requesting, ignoring request');
-      return false;
     };
 
     // If we're near the start of our loaded page list, request more pages.
     if (range[0] && this.isNearStart(store, range[0])) {
-      return await maybeAppendChapter('before');
+      maybeAppendChapter('before');
     }
 
     // If we're near the end of our loaded page list, request more pages.
     if (range[1] && this.isNearEnd(store, range[1])) {
-      return await maybeAppendChapter('after');
+      maybeAppendChapter('after');
     }
   }
 
