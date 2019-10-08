@@ -1,4 +1,4 @@
-import { Chapter, Page } from 'renderer/reader/manga_types';
+import { Chapter, Page, Series } from 'renderer/reader/manga_types';
 import { MangaSource } from 'renderer/reader/manga_source/manga_source';
 import { HttpClient } from './network';
 
@@ -9,10 +9,14 @@ const lang = 'en';
 export class MangaRock extends MangaSource {
   private http: HttpClient = new HttpClient();
 
-  async getMostPopularManga(): Promise<string> {
+  async getMostPopularSeries(): Promise<Series[]> {
     const resp = await this.http.get(`${apiUrl}/mrs_latest`).then(r => r.json());
-    const mostPopular = resp.data.sort((a: any, b: any) => a.rank - b.rank)[0];
-    return mostPopular.oid;
+    const mostPopular = resp.data.sort((a: any, b: any) => a.rank - b.rank);
+    return mostPopular.map((s: any): Series => ({
+      id: s.oid,
+      name: s.name,
+      thumbnail: s.thumbnail,
+    }));
   }
 
   protected async requestChapters(oid: string): Promise<Chapter[]> {

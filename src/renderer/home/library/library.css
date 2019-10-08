@@ -2,3 +2,20 @@
     border: 2px solid purple;
     flex: 1;
 }
+
+.seriesCards {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.seriesCard {
+  width: 200px;
+  border: 1px solid red;
+  border-radius: 2px;
+  margin: 8px;
+}
+
+.seriesCardThumbnail {
+  width: 100%;
+
+}

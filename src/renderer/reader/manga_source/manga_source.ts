@@ -1,10 +1,10 @@
-import { Chapter, Page } from '../manga_types';
+import { Chapter, Page, Series } from '../manga_types';
 
 export abstract class MangaSource {
   // Map from series ID to chapters
   protected chapterCache: Map<string, Chapter[]> = new Map();
 
-  abstract getMostPopularManga(): Promise<string>;
+  abstract getMostPopularSeries(): Promise<Series[]>;
   abstract getPages(chapter: Chapter): Promise<Page[]>;
   protected abstract requestChapters(id: string): Promise<Chapter[]>;
 

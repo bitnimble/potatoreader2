@@ -12,7 +12,7 @@ export function createHome({
   const skeleton = new HomeSkeleton();
 
   installHeader(skeleton);
-  installLibrary(skeleton);
+  installLibrary({ skeleton, loadReader });
 
   return React.memo(() => <HomeSkeletonView skeleton={skeleton} loadReader={loadReader}/>);
 }

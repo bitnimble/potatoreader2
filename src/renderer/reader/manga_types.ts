@@ -71,3 +71,10 @@ export namespace Chapter {
     return `${c.seriesId}-${c.chapterNumber}`;
   }
 }
+
+export type Series = {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail?: string;
+};

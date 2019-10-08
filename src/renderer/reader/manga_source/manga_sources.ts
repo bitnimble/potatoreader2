@@ -1,5 +1,5 @@
 import { MangaSource } from "./manga_source";
-import { TestPageProvider } from "./test_page_provider/test_page_provider";
+import { TestMangaSource } from "./test_manga_source/test_manga_source";
 import { MangaRock } from "./web_manga_source/mangarock";
 
 export enum MangaSourceId {
@@ -8,6 +8,6 @@ export enum MangaSourceId {
 }
 
 export const MangaSources: Record<MangaSourceId, MangaSource> = {
-  [MangaSourceId.TEST]: new TestPageProvider(),
+  [MangaSourceId.TEST]: new TestMangaSource(),
   [MangaSourceId.MANGAROCK]: new MangaRock(),
 };

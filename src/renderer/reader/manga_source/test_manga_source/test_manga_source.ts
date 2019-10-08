@@ -6,9 +6,12 @@ const CHAPTER_PAGE_COUNT = 30;
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-export class TestPageProvider extends MangaSource {
-  async getMostPopularManga() {
-    return '1';
+export class TestMangaSource extends MangaSource {
+  async getMostPopularSeries() {
+    return [
+      { id: '1', name: 'Test Series 1', description: 'Magical beasts foo' },
+      { id: '2', name: 'Test Series 2', description: 'Magical yoghurt foo' },
+    ];
   }
 
   protected async requestChapters(id: string) {

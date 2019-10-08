@@ -1,23 +1,60 @@
 import { observer } from 'mobx-react';
 import React from 'react';
 import styles from './library.css';
-import { MangaSourceId } from 'renderer/reader/manga_source/manga_sources';
+import { Series } from 'renderer/reader/manga_types';
 
-type Props = {
-  loadReader(sourceId: MangaSourceId, seriesId: string): void
+type LibraryProps = {
+  series?: Series[];
+  loadSeries(seriesId: string): void;
+  onMount(): void;
+};
+
+type SeriesCardProps = {
+  series: Series;
+  loadSeries(seriesId: string): void;
 };
 
 @observer
-export class Library extends React.Component<Props> {
-  private onSeriesClick = () => {
-    this.props.loadReader(MangaSourceId.MANGAROCK, 'mrs-serie-108915');
-  };
+export class Library extends React.Component<LibraryProps> {
+  componentDidMount() {
+    this.props.onMount();
+  }
+
+  private SeriesLoadingPlaceholder() {
+    return <div>Loading series...</div>;
+  }
 
   render() {
+    const { series, loadSeries} = this.props;
+
     return (
       <div className={styles.library}>
-        Library
-        <button onClick={this.onSeriesClick}>Load reader</button>
+        {!!series
+            ? (
+              <div className={styles.seriesCards}>
+                {series.map(s => <SeriesCard key={s.id} series={s} loadSeries={loadSeries}/>)}
+              </div>
+            )
+            : <this.SeriesLoadingPlaceholder/>
+        }
+      </div>
+    )
+  }
+}
+
+@observer
+class SeriesCard extends React.Component<SeriesCardProps> {
+  private onClick = () => {
+    this.props.loadSeries(this.props.series.id);
+  }
+  
+  render() {
+    const { series } = this.props;
+
+    return (
+      <div className={styles.seriesCard} onClick={this.onClick}>
+        <img className={styles.seriesCardThumbnail} src={series.thumbnail}/>
+        <span>{series.name}</span>
       </div>
     )
   }

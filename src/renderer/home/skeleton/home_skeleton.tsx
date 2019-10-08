@@ -8,7 +8,8 @@ export class HomeSkeleton {
   @observable.ref
   Header?: React.ComponentType;
 
-  Library?: React.ComponentType<{ loadReader(sourceId: MangaSourceId, seriesId: string): void }>;
+  @observable.ref
+  Library?: React.ComponentType;
 }
 
 type Props = {
@@ -24,7 +25,7 @@ export class HomeSkeletonView extends React.Component<Props> {
     return (
       <div className={styles.home}>
         {Header && <Header/>}
-        {Library && <Library loadReader={this.props.loadReader}/>}
+        {Library && <Library/>}
       </div>
     );
   }
