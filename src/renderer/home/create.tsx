@@ -7,12 +7,14 @@ import { MangaSourceId } from 'renderer/reader/manga_source/manga_sources';
 export function createHome({
   loadReader,
 }: {
-  loadReader(sourceId: MangaSourceId, seriesId: string): void,
+  loadReader(sourceId: MangaSourceId, seriesId: string): void;
 }) {
   const skeleton = new HomeSkeleton();
 
   installHeader(skeleton);
   installLibrary({ skeleton, loadReader });
 
-  return React.memo(() => <HomeSkeletonView skeleton={skeleton} loadReader={loadReader}/>);
+  return React.memo(() => (
+    <HomeSkeletonView skeleton={skeleton} loadReader={loadReader} />
+  ));
 }

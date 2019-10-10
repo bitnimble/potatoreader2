@@ -10,5 +10,5 @@ export function createReader(source: MangaSource, seriesId: string) {
 
   const PageList = createPageList(source, seriesId);
 
-  return React.memo(() => <Reader PageList={PageList}/>);
+  return React.memo(() => <Reader PageList={PageList} />);
 }

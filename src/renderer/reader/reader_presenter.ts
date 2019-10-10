@@ -1,9 +1,3 @@
+export class ReaderStore {}
 
-
-
-export class ReaderStore {
-
-}
-
-export class ReaderPresenter {
-}
+export class ReaderPresenter {}

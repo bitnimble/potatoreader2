@@ -25,20 +25,21 @@ export class Library extends React.Component<LibraryProps> {
   }
 
   render() {
-    const { series, loadSeries} = this.props;
+    const { series, loadSeries } = this.props;
 
     return (
       <div className={styles.library}>
-        {!!series
-            ? (
-              <div className={styles.seriesCards}>
-                {series.map(s => <SeriesCard key={s.id} series={s} loadSeries={loadSeries}/>)}
-              </div>
-            )
-            : <this.SeriesLoadingPlaceholder/>
-        }
+        {!!series ? (
+          <div className={styles.seriesCards}>
+            {series.map(s => (
+              <SeriesCard key={s.id} series={s} loadSeries={loadSeries} />
+            ))}
+          </div>
+        ) : (
+          <this.SeriesLoadingPlaceholder />
+        )}
       </div>
-    )
+    );
   }
 }
 
@@ -46,16 +47,16 @@ export class Library extends React.Component<LibraryProps> {
 class SeriesCard extends React.Component<SeriesCardProps> {
   private onClick = () => {
     this.props.loadSeries(this.props.series.id);
-  }
-  
+  };
+
   render() {
     const { series } = this.props;
 
     return (
       <div className={styles.seriesCard} onClick={this.onClick}>
-        <img className={styles.seriesCardThumbnail} src={series.thumbnail}/>
+        <img className={styles.seriesCardThumbnail} src={series.thumbnail} />
         <span>{series.name}</span>
       </div>
-    )
+    );
   }
 }

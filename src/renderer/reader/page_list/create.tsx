@@ -9,14 +9,15 @@ export function createPageList(source: MangaSource, seriesId: string) {
   const presenter = new PageListPresenter(source);
 
   const onMount = () => presenter.loadPages(store, seriesId);
-  const onScroll = (e: React.UIEvent<HTMLDivElement>) => presenter.onScroll(store, e);
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) =>
+    presenter.onScroll(store, e);
 
   return observer(() => (
-      <PageList
-          pages={store.pages}
-          topPage={store.topPage}
-          onListScroll={onScroll}
-          onMount={onMount}
-      />
+    <PageList
+      pages={store.pages}
+      topPage={store.topPage}
+      onListScroll={onScroll}
+      onMount={onMount}
+    />
   ));
 }

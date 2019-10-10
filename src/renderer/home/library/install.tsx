@@ -15,17 +15,14 @@ export function installLibrary({
 }) {
   const store = new LibraryStore();
   const presenter = new LibraryPresenter();
-  
+
   const onMount = () => presenter.loadSeries(store);
-  const loadSeries = (seriesId: string) => loadReader(store.mangaSourceId, seriesId);
+  const loadSeries = (seriesId: string) =>
+    loadReader(store.mangaSourceId, seriesId);
 
   const LibraryImpl = observer(() => (
-    <Library
-        onMount={onMount}
-        series={store.series}
-        loadSeries={loadSeries}
-    />
+    <Library onMount={onMount} series={store.series} loadSeries={loadSeries} />
   ));
 
-  runInAction(() => skeleton.Library = LibraryImpl);
+  runInAction(() => (skeleton.Library = LibraryImpl));
 }

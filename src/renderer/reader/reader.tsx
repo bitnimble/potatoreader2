@@ -11,8 +11,8 @@ export class Reader extends React.Component<Props> {
   render() {
     return (
       <div className={styles.reader}>
-        <this.props.PageList/>
+        <this.props.PageList />
       </div>
-    )
+    );
   }
 }

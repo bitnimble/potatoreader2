@@ -4,18 +4,18 @@
 }
 
 .seriesCards {
-  display: flex;
-  flex-wrap: wrap;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .seriesCard {
-  width: 200px;
-  border: 1px solid red;
-  border-radius: 2px;
-  margin: 8px;
+    width: 200px;
+    border: 1px solid red;
+    border-radius: 2px;
+    margin: 8px;
 }
 
 .seriesCardThumbnail {
-  width: 100%;
-
+    width: 100%;
 }

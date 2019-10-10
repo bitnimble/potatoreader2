@@ -3,8 +3,8 @@ export class Page {
     readonly chapter: Chapter,
     readonly pageNumber: number, // zero-based index
     readonly isLastPage: boolean,
-    readonly loadImage: () => Promise<string>, // function which returns a URI to display
-  ) { }
+    readonly loadImage: () => Promise<string> // function which returns a URI to display
+  ) {}
 
   get seriesId() {
     return this.chapter.seriesId;
@@ -23,10 +23,12 @@ export namespace Page {
     if (p1 == null && p2 == null) {
       return true;
     }
-    if (p1 != null && p2 != null
-       && p1.seriesId === p2.seriesId
-       && p1.chapterNumber === p2.chapterNumber
-       && p1.pageNumber === p2.pageNumber
+    if (
+      p1 != null &&
+      p2 != null &&
+      p1.seriesId === p2.seriesId &&
+      p1.chapterNumber === p2.chapterNumber &&
+      p1.pageNumber === p2.pageNumber
     ) {
       return true;
     }
@@ -54,16 +56,15 @@ export namespace PageRange {
       return true;
     }
     return false;
-  }
+  };
 }
 
 export class Chapter {
   constructor(
     readonly seriesId: string,
     readonly chapterNumber: number, // zero-based index
-    readonly chapterUrl: string,
-    // TODO: chapter title, etc
-  ) { }
+    readonly chapterUrl: string // TODO: chapter title, etc
+  ) {}
 }
 
 export namespace Chapter {

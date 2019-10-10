@@ -23,7 +23,7 @@ export class PageListPresenter {
   // Store current inflight requests to help prevent double-requesting
   private currentRequests: Set<string> = new Set();
 
-  constructor(private readonly mangaSource: MangaSource) { }
+  constructor(private readonly mangaSource: MangaSource) {}
 
   async loadPages(store: PageListStore, seriesId: string) {
     const chapter = await this.mangaSource.getChapter(seriesId, 0);
@@ -61,14 +61,20 @@ export class PageListPresenter {
       //   |       | <-- the first page positioned below the scrollTop of our list
       //
       // So, we pick `i - 1` to retrieve the first page.
-      if (topPage == null && (pageDiv as HTMLElement).offsetTop > listScrollTop) {
+      if (
+        topPage == null &&
+        (pageDiv as HTMLElement).offsetTop > listScrollTop
+      ) {
         topPage = store.pages[i - 1];
         topPageDiv = pageDiv as HTMLElement;
       }
       // The bottom page is the first page where it is positioned below the bottom of our viewport,
       // i.e. below (scrollTop + clientHeight). Similar to topPage, we pick the previous one since
       // the page with offsetTop > viewportBottom will actually be the next page.
-      if (bottomPage == null && (pageDiv as HTMLElement).offsetTop > (listScrollTop + listClientHeight)) {
+      if (
+        bottomPage == null &&
+        (pageDiv as HTMLElement).offsetTop > listScrollTop + listClientHeight
+      ) {
         bottomPage = store.pages[i - 1];
       }
       // If we've found both pages already, we can early-exit
@@ -90,28 +96,45 @@ export class PageListPresenter {
       store.viewportPageRange = range;
     }
     if (!PageRange.compare(store.viewportPageRange, range)) {
-      runInAction(() => store.topPage = topPage || undefined);
+      runInAction(() => (store.topPage = topPage || undefined));
       this.onViewportPageRangeChange(store, range, target, topPageDiv);
     }
   }
 
   @action
-  async onViewportPageRangeChange(store: PageListStore, range: PageRange, target: HTMLElement, topPageDiv: HTMLElement) {
+  async onViewportPageRangeChange(
+    store: PageListStore,
+    range: PageRange,
+    target: HTMLElement,
+    topPageDiv: HTMLElement
+  ) {
     store.viewportPageRange = range;
 
     const maybeAppendChapter = async (direction: 'before' | 'after') => {
-      const origin = direction === 'before' ? store.pages[0] : store.pages[store.pages.length - 1];
+      const origin =
+        direction === 'before'
+          ? store.pages[0]
+          : store.pages[store.pages.length - 1];
       const currentRequestKey = this.getCurrentRequestKey(origin, direction);
-      if (!this.currentRequests.has(currentRequestKey)
-          // Avoid requesting pages before the first page of the series
-          && !(origin.chapterNumber === 0 && origin.pageNumber === 0 && direction === 'before')
+      if (
+        !this.currentRequests.has(currentRequestKey) &&
+        // Avoid requesting pages before the first page of the series
+        !(
+          origin.chapterNumber === 0 &&
+          origin.pageNumber === 0 &&
+          direction === 'before'
+        )
       ) {
         this.currentRequests.add(currentRequestKey);
-        console.log(`Requesting '${direction}' from ${Page.toShortString(origin)}`);
+        console.log(
+          `Requesting '${direction}' from ${Page.toShortString(origin)}`
+        );
         let pageOffset: number | undefined;
         await runInAction(async () => {
-          await this.requestAdditionalChapter(store, origin, direction).then(() => this.currentRequests.delete(currentRequestKey));
-          
+          await this.requestAdditionalChapter(store, origin, direction).then(
+            () => this.currentRequests.delete(currentRequestKey)
+          );
+
           // Calculate current position before action exits
           pageOffset = target.scrollTop - topPageDiv.offsetTop;
         });
@@ -136,26 +159,44 @@ export class PageListPresenter {
     }
   }
 
-  private async requestAdditionalChapter(store: PageListStore, origin: Page, direction: 'before' | 'after') {
-    const chapterNumber = direction === 'before'
-        ? origin.pageNumber === 0 ? origin.chapterNumber - 1 : origin.chapterNumber
-        : origin.isLastPage ? origin.chapterNumber + 1 : origin.chapterNumber;
-    const chapter = await this.mangaSource.getChapter(origin.seriesId, chapterNumber);
+  private async requestAdditionalChapter(
+    store: PageListStore,
+    origin: Page,
+    direction: 'before' | 'after'
+  ) {
+    const chapterNumber =
+      direction === 'before'
+        ? origin.pageNumber === 0
+          ? origin.chapterNumber - 1
+          : origin.chapterNumber
+        : origin.isLastPage
+        ? origin.chapterNumber + 1
+        : origin.chapterNumber;
+    const chapter = await this.mangaSource.getChapter(
+      origin.seriesId,
+      chapterNumber
+    );
     const pages = await this.mangaSource.getPages(chapter);
     runInAction(() => {
-      const filteredPages = pages.filter(page => !this.pageKeySet.has(Page.toPageKey(page)));
+      const filteredPages = pages.filter(
+        page => !this.pageKeySet.has(Page.toPageKey(page))
+      );
       if (direction === 'before') {
         store.pages.unshift(...filteredPages);
       } else {
         store.pages.push(...filteredPages);
       }
       this.addToPageKeySet(filteredPages);
-      console.log('Adding', filteredPages.map(p => Page.toShortString(p)).join(','));
+      console.log(
+        'Adding',
+        filteredPages.map(p => Page.toShortString(p)).join(',')
+      );
 
       if (store.pages.length > MAX_PAGES) {
         console.log('removing pages');
         // Cull pages from the end if there are too many pages loaded
-        const removed = direction === 'before'
+        const removed =
+          direction === 'before'
             ? store.pages.splice(MAX_PAGES)
             : store.pages.splice(0, store.pages.length - MAX_PAGES);
         this.removeFromPageKeySet(removed);
@@ -167,7 +208,11 @@ export class PageListPresenter {
    * Returns true if the provided PageRef is within the last `bufferDistance` pages.
    */
   private isNearEnd(store: PageListStore, page: Page) {
-    for (let i = store.pages.length - 1; i >= store.pages.length - BUFFER_DISTANCE; i--) {
+    for (
+      let i = store.pages.length - 1;
+      i >= store.pages.length - BUFFER_DISTANCE;
+      i--
+    ) {
       if (Page.compare(store.pages[i], page)) {
         return true;
       }
@@ -188,7 +233,9 @@ export class PageListPresenter {
   }
 
   private addToPageKeySet(pages: readonly Page[]) {
-    pages.map(page => Page.toPageKey(page)).forEach(key => this.pageKeySet.add(key));
+    pages
+      .map(page => Page.toPageKey(page))
+      .forEach(key => this.pageKeySet.add(key));
   }
 
   private removeFromPageKeySet(pages: readonly Page[]) {

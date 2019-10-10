@@ -1,8 +1,7 @@
 import { action, observable } from 'mobx';
 
 export class AppStore {
-  @observable.ref
-  Content?: React.ComponentType;
+  @observable.ref Content?: React.ComponentType;
 }
 
 export class AppPresenter {

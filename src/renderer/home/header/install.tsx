@@ -3,5 +3,5 @@ import { HomeSkeleton } from '../skeleton/home_skeleton';
 import { Header } from './header';
 
 export function installHeader(skeleton: HomeSkeleton) {
-  runInAction(() => skeleton.Header = Header);
+  runInAction(() => (skeleton.Header = Header));
 }

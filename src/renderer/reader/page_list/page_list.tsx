@@ -32,7 +32,7 @@ export class PageList extends React.Component<Props> {
           {Page.toShortString(pages[pages.length - 1])}
         </div>
         {pages.map(page => (
-          <PageView key={Page.toPageKey(page)} page={page}/>
+          <PageView key={Page.toPageKey(page)} page={page} />
         ))}
       </div>
     );
@@ -53,17 +53,18 @@ class PageView extends React.Component<PageViewProps> {
 
     // Resolve the page
     const image = await page.loadImage();
-    runInAction(() => this.imageUri = image);
+    runInAction(() => (this.imageUri = image));
   }
 
   render() {
     return (
       <div className={styles.pageView}>
-        {this.imageUri == null
-            ? <PlaceholderPage/>
-            : <img src={this.imageUri}/>
-        }
+        {this.imageUri == null ? (
+          <PlaceholderPage />
+        ) : (
+          <img src={this.imageUri} />
+        )}
       </div>
-    )
+    );
   }
 }

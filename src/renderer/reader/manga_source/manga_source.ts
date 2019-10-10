@@ -22,7 +22,9 @@ export abstract class MangaSource {
     const chapters = await this.getChapters(seriesId);
     const chapter = chapters[chapterNumber];
     if (chapter == null) {
-      throw new Error(`Found invalid chapter number ${chapterNumber} for series ${seriesId}`);
+      throw new Error(
+        `Found invalid chapter number ${chapterNumber} for series ${seriesId}`
+      );
     }
     return chapter;
   }

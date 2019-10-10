@@ -5,16 +5,14 @@ import styles from './home_skeleton.css';
 import { MangaSourceId } from 'renderer/reader/manga_source/manga_sources';
 
 export class HomeSkeleton {
-  @observable.ref
-  Header?: React.ComponentType;
+  @observable.ref Header?: React.ComponentType;
 
-  @observable.ref
-  Library?: React.ComponentType;
+  @observable.ref Library?: React.ComponentType;
 }
 
 type Props = {
   skeleton: HomeSkeleton;
-  loadReader(sourceId: MangaSourceId, seriesId: string): void,
+  loadReader(sourceId: MangaSourceId, seriesId: string): void;
 };
 
 @observer
@@ -24,8 +22,8 @@ export class HomeSkeletonView extends React.Component<Props> {
 
     return (
       <div className={styles.home}>
-        {Header && <Header/>}
-        {Library && <Library/>}
+        {Header && <Header />}
+        {Library && <Library />}
       </div>
     );
   }

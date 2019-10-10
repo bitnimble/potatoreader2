@@ -15,30 +15,35 @@ export class TestMangaSource extends MangaSource {
   }
 
   protected async requestChapters(id: string) {
-    return Array(CHAPTER_COUNT).fill(0).map((_, i) => new Chapter(
-      id,
-      i,
-      `/chapter-${i}`,
-    ));
+    return Array(CHAPTER_COUNT)
+      .fill(0)
+      .map((_, i) => new Chapter(id, i, `/chapter-${i}`));
   }
 
   async getPages(chapter: Chapter) {
     if (chapter.chapterNumber < 0) {
-      throw new Error('[TestPageProvider] cannot retrieve chapter before chapter 0');
+      throw new Error(
+        '[TestPageProvider] cannot retrieve chapter before chapter 0'
+      );
     }
 
     // Simulate loading time
     await delay(1000);
 
-    return Array(CHAPTER_PAGE_COUNT).fill(0).map((_, i) => new Page(
-      chapter,
-      i,
-      i === CHAPTER_PAGE_COUNT - 1,
-      () => this.createPage(chapter, i),
-    ));
+    return Array(CHAPTER_PAGE_COUNT)
+      .fill(0)
+      .map(
+        (_, i) =>
+          new Page(chapter, i, i === CHAPTER_PAGE_COUNT - 1, () =>
+            this.createPage(chapter, i)
+          )
+      );
   }
 
-  private async createPage(chapterRef: Chapter, pageNumber: number): Promise<string> {
+  private async createPage(
+    chapterRef: Chapter,
+    pageNumber: number
+  ): Promise<string> {
     const canvas = document.createElement('canvas');
     canvas.width = 500;
     canvas.height = 800;
@@ -48,7 +53,11 @@ export class TestMangaSource extends MangaSource {
     }
     ctx.font = '16px serif';
     ctx.fillStyle = 'blue';
-    ctx.fillText(`Chapter ${chapterRef.chapterNumber}, page ${pageNumber}`, 30, 30);
+    ctx.fillText(
+      `Chapter ${chapterRef.chapterNumber}, page ${pageNumber}`,
+      30,
+      30
+    );
 
     const uri = canvas.toDataURL('image/png');
 
